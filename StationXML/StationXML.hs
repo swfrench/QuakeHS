@@ -52,54 +52,46 @@ data Network = Network
 getAttr :: String -> Element -> String
 getAttr s = fromMaybe "" . findAttrBy (\q -> qName q == s)
 
-getCode :: Element -> String
-getCode = getAttr "code"
-
-getLocation :: Element -> String
-getLocation = getAttr "locationCode"
-
-getStart :: Element -> String
-getStart = getAttr "startDate"
-
-getEnd :: Element -> String
-getEnd = getAttr "endDate"
-
 getChildren :: String -> Element -> [Element]
 getChildren s = filterChildrenName (\e -> qName e == s)
-
-getNetworks :: Element -> [Element]
-getNetworks = getChildren "Network"
-
-getStations :: Element -> [Element]
-getStations = getChildren "Station"
-
-getChannels :: Element -> [Element]
-getChannels = getChildren "Channel"
-
-parseNetwork :: (Element -> [Station]) -> Element -> Network
-parseNetwork stns n = Network (getCode n) (getStart n) (getEnd n) (stns n)
-
-parseStation :: (Element -> [Channel]) -> Element -> Station
-parseStation chns s = Station (getCode s) (getStart s) (getEnd s) (chns s)
 
 getChildContent :: String -> Element -> String
 getChildContent n = maybe "" strContent . filterChildName (\c -> qName c == n)
 
+parseNetwork :: (Element -> [Station]) -> Element -> Network
+parseNetwork stns n = 
+  let code  = getAttr "code"      n
+      start = getAttr "startDate" n
+      end   = getAttr "endDate"   n
+  in  Network code start end (stns n)
+
+parseStation :: (Element -> [Channel]) -> Element -> Station
+parseStation chns s = 
+  let code  = getAttr "code"      s
+      start = getAttr "startDate" s
+      end   = getAttr "endDate"   s
+  in  Station code start end (chns s)
+
 parseChannel :: Element -> Channel
 parseChannel c =
-  let lat = read . getChildContent "Latitude" $ c
-      lon = read . getChildContent "Longitude" $ c
-      dep = read . getChildContent "Depth" $ c
-      dip = read . getChildContent "Dip" $ c
-      azm = read . getChildContent "Azimuth" $ c
-  in  Channel (getCode c) (getStart c) (getEnd c) (getLocation c) lat lon dep dip azm
+  let code  = getAttr "code"          c
+      start = getAttr "startDate"     c
+      end   = getAttr "endDate"       c
+      loc   = getAttr "locationCode"  c
+      lat   = readContent "Latitude"  c
+      lon   = readContent "Longitude" c
+      dep   = readContent "Depth"     c
+      dip   = readContent "Dip"       c
+      azm   = readContent "Azimuth"   c
+      readContent s = read . getChildContent s
+  in  Channel code start end loc lat lon dep dip azm
 
 -- | Return a list of 'Network' structures present in the 'Element' tree returned by @parseXMLDoc@ from the @Text.XML@ module
 parseStationXML
   :: Element    -- ^ Root of the StationXML (sub-)tree containing Network elements
   -> [Network]  -- ^ Returns: List of 'Network' structures
 parseStationXML elems =
-  let nets = map (parseNetwork stns) . getNetworks
-      stns = map (parseStation chns) . getStations
-      chns = map  parseChannel . getChannels
+  let nets = map (parseNetwork stns) . getChildren "Network"
+      stns = map (parseStation chns) . getChildren "Station"
+      chns = map  parseChannel       . getChildren "Channel"
   in  nets elems
