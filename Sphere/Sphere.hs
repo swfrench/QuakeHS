@@ -18,14 +18,14 @@ module Sphere
 data Point = Point
   { longitude :: Double
   , latitude  :: Double
-  } deriving (Show)
+  } deriving (Show, Eq, Ord)
 
 -- | A great-circle path on the sphere, characterized by an anchor point, distance, and azimuth
 data Path = Path
   { anchor   :: Point
   , azimuth  :: Double
   , distance :: Double
-  } deriving (Show)
+  } deriving (Show, Eq)
 
 argClean :: Double -> Double
 argClean = min 1.0 . max (-1.0)
