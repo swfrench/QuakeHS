@@ -22,31 +22,34 @@ import Text.XML.Light
 
 -- | A single channel and a subset of associated StationXML (attribute or child) metadata
 data Channel = Channel
-  { channelName  :: String
-  , channelStart :: String
-  , channelEnd   :: String
-  , channelLoc   :: String
-  , channelLat   :: Float
-  , channelLon   :: Float
-  , channelDep   :: Float
-  , channelDip   :: Float
-  , channelAzm   :: Float
+  { channelName   :: String
+  , channelStart  :: String
+  , channelEnd    :: String
+  , channelStatus :: String
+  , channelLoc    :: String
+  , channelLat    :: Float
+  , channelLon    :: Float
+  , channelDep    :: Float
+  , channelDip    :: Float
+  , channelAzm    :: Float
   } deriving (Show, Eq)
 
 -- | A single station, associated StationXML attribute metadata and 'Channel' children
 data Station = Station
-  { stationName  :: String
-  , stationStart :: String
-  , stationEnd   :: String
-  , channels     :: [Channel]
+  { stationName   :: String
+  , stationStart  :: String
+  , stationEnd    :: String
+  , stationStatus :: String
+  , channels      :: [Channel]
   } deriving (Show, Eq)
 
 -- | A single network, associated StationXML attribute metadata and 'Station' children
 data Network = Network
-  { networkName  :: String
-  , networkStart :: String
-  , networkEnd   :: String
-  , stations     :: [Station]
+  { networkName   :: String
+  , networkStart  :: String
+  , networkEnd    :: String
+  , networkStatus :: String
+  , stations      :: [Station]
   } deriving (Show, Eq)
 
 getAttr :: String -> Element -> String
@@ -60,31 +63,34 @@ getChildContent n = maybe "" strContent . filterChildName (\c -> qName c == n)
 
 parseNetwork :: (Element -> [Station]) -> Element -> Network
 parseNetwork stns n = 
-  let code  = getAttr "code"      n
-      start = getAttr "startDate" n
-      end   = getAttr "endDate"   n
-  in  Network code start end (stns n)
+  let code  = getAttr "code"             n
+      start = getAttr "startDate"        n
+      end   = getAttr "endDate"          n
+      stat  = getAttr "restrictedStatus" n
+  in  Network code start end stat (stns n)
 
 parseStation :: (Element -> [Channel]) -> Element -> Station
 parseStation chns s = 
-  let code  = getAttr "code"      s
-      start = getAttr "startDate" s
-      end   = getAttr "endDate"   s
-  in  Station code start end (chns s)
+  let code  = getAttr "code"             s
+      start = getAttr "startDate"        s
+      end   = getAttr "endDate"          s
+      stat  = getAttr "restrictedStatus" s
+  in  Station code start end stat (chns s)
 
 parseChannel :: Element -> Channel
 parseChannel c =
-  let code  = getAttr "code"          c
-      start = getAttr "startDate"     c
-      end   = getAttr "endDate"       c
-      loc   = getAttr "locationCode"  c
-      lat   = readContent "Latitude"  c
-      lon   = readContent "Longitude" c
-      dep   = readContent "Depth"     c
-      dip   = readContent "Dip"       c
-      azm   = readContent "Azimuth"   c
+  let code  = getAttr "code"             c
+      start = getAttr "startDate"        c
+      end   = getAttr "endDate"          c
+      loc   = getAttr "locationCode"     c
+      stat  = getAttr "restrictedStatus" c
+      lat   = readContent "Latitude"     c
+      lon   = readContent "Longitude"    c
+      dep   = readContent "Depth"        c
+      dip   = readContent "Dip"          c
+      azm   = readContent "Azimuth"      c
       readContent s = read . getChildContent s
-  in  Channel code start end loc lat lon dep dip azm
+  in  Channel code start end stat loc lat lon dep dip azm
 
 -- | Return a list of 'Network' structures present in the 'Element' tree returned by @parseXMLDoc@ from the @Text.XML@ module
 parseStationXML
