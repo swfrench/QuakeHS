@@ -1,2 +1,5 @@
 # vim
 .*.swp
+
+# ignore haddock output for now
+doc
