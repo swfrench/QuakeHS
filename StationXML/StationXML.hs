@@ -41,7 +41,18 @@ data Station = Station
   , stationEnd    :: String
   , stationStatus :: String
   , channels      :: [Channel]
-  } deriving (Show, Eq)
+  } deriving (Eq)
+
+-- Custom show instance for Station
+instance Show Station where
+  show n = unlines . map unwords $
+    [ ["Station",  stationName n]
+    , ["-------",  "----"]
+    , ["  start:", stationStart n]
+    , ["    end:", stationEnd n]
+    , [" status:", stationStatus n]
+    , [" contains", show . length . channels $ n, "channels"]]
+
 
 -- | A single network, associated StationXML attribute metadata and 'Station' children
 data Network = Network
@@ -50,7 +61,18 @@ data Network = Network
   , networkEnd    :: String
   , networkStatus :: String
   , stations      :: [Station]
-  } deriving (Show, Eq)
+  } deriving (Eq)
+
+-- Custom show instance for Network
+instance Show Network where
+  show n = unlines . map unwords $
+    [ ["Network",  networkName n]
+    , ["-------",  "--"]
+    , ["  start:", networkStart n]
+    , ["    end:", networkEnd n]
+    , [" status:", networkStatus n]
+    , [" contains", show . length . stations $ n, "stations"]]
+
 
 getAttr :: String -> Element -> String
 getAttr s = fromMaybe "" . findAttrBy (\q -> qName q == s)
@@ -62,7 +84,7 @@ getChildContent :: String -> Element -> String
 getChildContent n = maybe "" strContent . filterChildName (\c -> qName c == n)
 
 parseNetwork :: (Element -> [Station]) -> Element -> Network
-parseNetwork stns n = 
+parseNetwork stns n =
   let code  = getAttr "code"             n
       start = getAttr "startDate"        n
       end   = getAttr "endDate"          n
@@ -70,7 +92,7 @@ parseNetwork stns n =
   in  Network code start end stat (stns n)
 
 parseStation :: (Element -> [Channel]) -> Element -> Station
-parseStation chns s = 
+parseStation chns s =
   let code  = getAttr "code"             s
       start = getAttr "startDate"        s
       end   = getAttr "endDate"          s
