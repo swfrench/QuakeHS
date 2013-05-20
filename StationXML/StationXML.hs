@@ -1,7 +1,7 @@
 
 -- | Limited support for FDSN StationXML parsing, including:
 --
--- * station, network, channel start and end times
+-- * station, network, channel start and end times, restrictedStatus
 --
 -- * channel location codes
 --
@@ -43,7 +43,7 @@ data Station = Station
   , channels      :: [Channel]
   } deriving (Eq)
 
--- Custom show instance for Station
+-- Custom Show instance for Station
 instance Show Station where
   show n = unlines . map unwords $
     [ ["* Station",  stationName   n]
@@ -62,7 +62,7 @@ data Network = Network
   , stations      :: [Station]
   } deriving (Eq)
 
--- Custom show instance for Network
+-- Custom Show instance for Network
 instance Show Network where
   show n = unlines . map unwords $
     [ ["* Network",  networkName   n]
@@ -70,7 +70,6 @@ instance Show Network where
     , ["      end:", networkEnd    n]
     , ["   status:", networkStatus n]
     , ["   contains", show . length . stations $ n, "stations"]]
-
 
 getAttr :: String -> Element -> String
 getAttr s = fromMaybe "" . findAttrBy ((==) s . qName)
