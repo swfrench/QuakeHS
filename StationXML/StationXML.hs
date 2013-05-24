@@ -32,7 +32,19 @@ data Channel = Channel
   , channelDep    :: Float
   , channelDip    :: Float
   , channelAzm    :: Float
-  } deriving (Show, Eq)
+  } deriving (Eq)
+
+-- Custom Show instance for Channel
+instance Show Channel where
+  show n = unlines . map unwords $
+    [ ["* Channel",  channelName         n]
+    , ["    start:", channelStart        n]
+    , ["      end:", channelEnd          n]
+    , ["   status:", channelStatus       n]
+    , ["      loc:", channelLoc          n]
+    , ["      lat:", show . channelLat $ n]
+    , ["      lon:", show . channelLon $ n] 
+    , ["    depth:", show . channelDep $ n]]
 
 -- | A single station, associated StationXML attribute metadata and 'Channel' children
 data Station = Station
@@ -51,7 +63,6 @@ instance Show Station where
     , ["      end:", stationEnd    n]
     , ["   status:", stationStatus n]
     , ["   contains", show . length . channels $ n, "channels"]]
-
 
 -- | A single network, associated StationXML attribute metadata and 'Station' children
 data Network = Network
